@@ -21,17 +21,17 @@ export const TruncateText = ({
   const [showMoreEnabled, setShowMoreEnabled] = useState(false);
   const [displayText, setDisplayText] = useState(text);
 
+  const calculateTextWidth = (text: string) => {
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+
+    if (context && textRef.current) {
+      context.font = window.getComputedStyle(textRef.current).font;
+      return context?.measureText(text).width;
+    }
+  };
+
   useEffect(() => {
-    const calculateTextWidth = (text: string) => {
-      const canvas = document.createElement("canvas");
-      const context = canvas.getContext("2d");
-
-      if (context && textRef.current) {
-        context.font = window.getComputedStyle(textRef.current).font;
-        return context?.measureText(text).width;
-      }
-    };
-
     let start = 0;
     let end = text.length;
 
@@ -51,7 +51,16 @@ export const TruncateText = ({
     }
 
     const truncatedText = text.substring(0, start - 1) + ellipses;
-    setDisplayText(truncatedText);
+
+    // Check if the original text itself fits within the container
+    if (
+      textRef.current &&
+      (calculateTextWidth(text) as number) <= textRef.current.offsetWidth
+    ) {
+      setDisplayText(text);
+    } else {
+      setDisplayText(truncatedText);
+    }
   }, [text]);
 
   const isTruncated = useMemo(() => {
